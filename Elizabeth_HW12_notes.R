@@ -1,5 +1,7 @@
 # Week 12 Elizabeth Notes 
 
+# shout out to Kristine and Nathan, they helped me on this and I referenced Kristine's notes which referenced Nathan! 
+# I also used AI to help me translate Faraway's chapters into simpler terms whenever they confused me 
 
 #### Homework Week 12 ----
 
@@ -118,35 +120,37 @@ exp(0.045)  # just for funsies, converting to odds
 # C 
 # ------------------------------------
 
-# first build hte S-curve 
-bass_predictions = predict.glm(logit_model) 
-# predict() and predict.glm() are the same here, R kind of just chooses the right one for us, but predict.glm() is more precise 
+# create a dataframe of new lengths to plot 
+newdata = data.frame(
+  length_at_capture = seq(200, 350, length.out = 100)
+)
+# create 100 data points between 200 to 350 in sequential order 
+# you can't get away with avoiding creating a newdata data frame, it'll throw a fit 
+
+#  Make predictions for our new lengths 
+predicted_seabass = predict.glm(logit_model, newdata = newdata, type = "response") 
+predicted_seabass
 # predict.glm(model, newdata, type = "response") 
+# predict() and predict.glm() are the same here, R kind of just chooses the right one for us, but predict.glm() is more precise 
 # predict.glm() is a function that tells teh computer to make predictions based on a model 
 # model = our model, the model = glm(sex change ~ length, family = binomial, data = sea_bass) we made before 
 # newdata = a dataframe containing the predictor values where we want to make predictions 
 # It's pretty normal to make a new dataframe with a bunch of rows for multiple predictions, like a sequence of them, but make sur ethe column names exactly match the predicotr names in the model 
 # If we don't provide newdata, it justs predicts at hte original data points 
-# Let's be lazy and not provide newdata 
 
-library(tidyverse)
+# bind the predicted values to our new data 
+newdata$predicted_prob = predicted_seabass
 
+# plot everything 
 p = ggplot(sea_bass, aes(x = length_at_capture, y = sex_change)) +
   geom_point() + 
-  labs(title = "Logistic Regression Curve for Likelihood of Seabass Sex change \n Based on size", x = "Length at capture (mm)", y = "Probability of Sex Change") 
+  geom_line(data = newdata,
+            aes(x = length_at_capture, y = predicted_prob), 
+            color = "red") + 
+  labs(
+    title = "Logistic Regression Curve for Likelihood of Seabass Sex change \n Based on size",
+    x = "Length at capture (mm)", 
+    y = "Probability of Sex Change") 
 p
-
-plot(length_at_capture, sex_change, xlab = "Length at capture (mm)", ylab = "Sex change (0/1)", data = sea_bass)
-
-sea_bass$length_at_capture
-# Plot the relationship
-plot(study_hours, passed, xlab = "Study Hours", ylab = "Passed (0/1)")
-
-# Add the fitted logistic curve
-hours_seq = seq(0, 5, 0.1)
-pred_prob = predict(logit_model, 
-                    newdata = data.frame(study_hours = hours_seq),
-                    type = "response")
-lines(hours_seq, pred_prob, col = "red", lwd = 2)
-
-
+# note that we are making the base plot out of our original dataframe sea_bass
+# And then we are adding a line over it using our newdata predictions dataframe 
